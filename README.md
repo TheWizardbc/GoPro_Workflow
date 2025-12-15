@@ -1,4 +1,7 @@
 Don't use the 4.1.0 version, there is a Mapillary upload bug present for the GoPro Max workflow. Please use 4.1.3 or higher.
+
+15-dec-2025: The latest version (4.2.2 and higher) has GPU encoding support, this drastically shortens the processing time for Nadir.
+
 # GoPro Max & Hero - Mapillary & SVS Workflow Tool
 
 A comprehensive GUI application written in Python to process video footage from the **GoPro Max (360°)** and **GoPro Hero (Standard)** for upload to **Mapillary** and **StreetView Studio (SVS)**.
