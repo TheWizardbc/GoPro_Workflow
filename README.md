@@ -23,7 +23,7 @@ This tool automates the process of sampling, GPMF metadata extraction, GPS corre
 
 ## 🚀 Requirements
 
-To use this tool, the following external utilities must be installed on your system (or placed in the `tools/` folder):
+To use this tool, the following external utilities must be installed on your system (or placed in the `tools/` folder) or use the .exe file (recommended for the most users, only ImageMagick must be installed seperately if needed)
 
 1.  **Python 3.x**
 2.  **FFmpeg & FFprobe:** For video processing and frame extraction.
