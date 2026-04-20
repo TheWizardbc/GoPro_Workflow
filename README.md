@@ -1,7 +1,3 @@
-Don't use the 4.1.0 version, there is a Mapillary upload bug present for the GoPro Max workflow. Please use 4.1.3 or higher.
-
-15-dec-2025: The latest version (4.2.2 and higher) has GPU encoding support, this drastically shortens the processing time for Nadir.
-
 # GoPro Max & Hero - Mapillary & SVS Workflow Tool
 
 A comprehensive GUI application written in Python to process video footage from the **GoPro Max (360°)** and **GoPro Hero (Standard)** for upload to **Mapillary** and **StreetView Studio (SVS)**.
@@ -12,7 +8,8 @@ This tool automates the process of sampling, GPMF metadata extraction, GPS corre
 
 * **GUI Interface:** User-friendly interface (Tkinter) with tabs for configuration, logs, and progress tracking.
 * **GoPro Max Workflow (360°):**
-    * Support for Max 1 & Max 2 logic.
+    * Support for Max 1 & Max 2 logic, TimeWarp 2x/5x support.
+    * Support for HVEC and CineForm files.
     * GPMF metadata extraction and muxing.
     * **StreetView Studio Fix:** Automatic correction of MP4 headers and GPX timestamps for SVS compatibility.
     * **Nadir Patch (Optional):** Hides the tripod using a custom logo (requires ImageMagick).
@@ -40,7 +37,7 @@ pip install Pillow
 🛠️ Installation & Usage
 Clone this repository or download the script.
 
-Ensure your source files (.360 files must be converted to .mp4 using GoPro Player first!) are in a source folder.
+Ensure your source files (.360 files must be converted to .mp4/.mov using GoPro Player first!) are in a source folder.
 
 Run the script:
 python GoPro_Mapillary_SVS_Workflow_v4.1.0.py
@@ -56,3 +53,9 @@ Enter your Mapillary username.
 Choose the desired workflow (Max or Hero) and click START.
 
 Or download the .exe file with all the tools included.
+
+20-apr-2026: Version 5.2.0 and higher support TimeWarp files of the Max 1 and Max 2 (only Street View support at the moment).
+
+15-dec-2025: The latest version (4.2.2 and higher) has GPU encoding support, this drastically shortens the processing time for Nadir.
+
+Don't use the 4.1.0 version, there is a Mapillary upload bug present for the GoPro Max workflow. Please use 4.1.3 or higher.
