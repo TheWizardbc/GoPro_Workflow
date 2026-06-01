@@ -1,6 +1,6 @@
-# GoPro Max & Hero - Mapillary & SVS Workflow Tool
+# GoPro Max & Hero/Mission 1 series - Mapillary & SVS Workflow Tool
 
-A comprehensive GUI application written in Python to process video footage from the **GoPro Max (360°)** and **GoPro Hero (Standard)** for upload to **Mapillary** and **StreetView Studio (SVS)**.
+A comprehensive GUI application written in Python to process video footage from the **GoPro Max (360°)** and **GoPro Hero/Mission 1 series (Standard)** for upload to **Mapillary** and **StreetView Studio (SVS)**.
 
 This tool automates the process of sampling, GPMF metadata extraction, GPS corrections, and uploading.
 
@@ -13,7 +13,7 @@ This tool automates the process of sampling, GPMF metadata extraction, GPS corre
     * GPMF metadata extraction and muxing.
     * **StreetView Studio Fix:** Automatic correction of MP4 headers and GPX timestamps for SVS compatibility.
     * **Nadir Patch (Optional):** Hides the tripod using a custom logo (requires ImageMagick).
-* **GoPro Hero Workflow:**
+* **GoPro Hero/Mission 1 Workflow:**
     * Dedicated workflow for standard MP4 files.
     * Automatic sampling and processing for Mapillary.
 * **Mapillary Integration:** Direct upload using Mapillary Tools (integrated command).
@@ -28,20 +28,6 @@ To use this tool, the following external utilities must be installed on your sys
 4.  **Mapillary Tools:** The official CLI tool for uploads.
 5.  **ImageMagick:** (Optional) Only required if using the Nadir Patch feature.
 
-### Python Dependencies
-Install the required Python libraries using:
-
-```bash
-pip install Pillow
-
-🛠️ Installation & Usage
-Clone this repository or download the script.
-
-Ensure your source files (.360 files must be converted to .mp4/.mov using GoPro Player first!) are in a source folder.
-
-Run the script:
-python GoPro_Mapillary_SVS_Workflow_v4.1.0.py
-
 Configuration Tab:
 
 Select your Source and Target directories.
@@ -53,6 +39,8 @@ Enter your Mapillary username.
 Choose the desired workflow (Max or Hero) and click START.
 
 Or download the .exe file with all the tools included.
+
+01-jun-2026: Mission 1 series support added. The workflow is the same as of the Hero, out of the box support present.
 
 20-apr-2026: Version 5.2.0 and higher support TimeWarp files of the Max 1 and Max 2 (only Street View support at the moment).
 
