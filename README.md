@@ -4,6 +4,8 @@ A comprehensive GUI application written in Python to process video footage from 
 
 This tool automates the process of sampling, GPMF metadata extraction, GPS corrections, and uploading.
 
+If you want buy me a coffee ;) : https://www.paypal.com/paypalme/mfaken
+
 ## ✨ Features
 
 * **GUI Interface:** User-friendly interface (Tkinter) with tabs for configuration, logs, and progress tracking.
