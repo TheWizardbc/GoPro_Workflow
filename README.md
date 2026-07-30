@@ -4,6 +4,9 @@ A comprehensive Windows GUI application written in Python for processing footage
 
 The application automates video preparation, GPMF metadata extraction and muxing, GPX generation, GPS validation and recovery, Nadir patching, frame sampling, Mapillary processing, uploading, and SVS timestamp synchronization.
 
+> [!IMPORTANT] 
+> Version 5.8.9 and above have an automated version checker, it's recommended to update to >5.8.9.
+
 ## Support the project
 
 If this tool saves you time and you would like to buy me a coffee:
@@ -34,7 +37,7 @@ If this tool saves you time and you would like to buy me a coffee:
 #### Video-mode support
 
 - Standard video
-- Supported TimeWarp modes
+- Supported TimeWarp modes 2x and 5x
 - MAX 1 and MAX 2 workflow routing
 - Automatic distinction between standard and TimeWarp footage
 
