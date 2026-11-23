@@ -1,566 +1,431 @@
-# GoPro MAX & HERO/Mission 1 Series Mapillary and Street View Studio Workflow Tool
+# GoPro MAX & HERO/Mission 1 Mapillary and Google Street View Workflow Tool
 
-A comprehensive Windows GUI application written in Python for processing footage from the **GoPro MAX 1**, **GoPro MAX 2**, **GoPro HERO series**, and **GoPro Mission 1 series** for use with **Mapillary** and **Google Street View Studio (SVS)**.
+GoPro Workflow is a comprehensive Windows desktop application written in Python for processing footage from the **GoPro MAX 1**, **GoPro MAX 2**, **GoPro HERO series**, and **GoPro Mission 1 series** for use with **Mapillary** and **Google Street View**.
 
-The application automates video preparation, GPMF metadata extraction and muxing, GPX generation, GPS validation and recovery, Nadir patching, frame sampling, Mapillary processing, uploading, and SVS timestamp synchronization.
+The application automates video preparation, GPMF metadata extraction and muxing, GPX generation, GPS validation and recovery, optional Nadir processing, frame sampling, Mapillary processing and upload, Street View MP4/GPX preparation, and optional Google Street View upload and status tracking.
 
-> [!IMPORTANT] 
-> Version 5.8.9 and above have an automated version checker, it's recommended to update to >5.8.9.
+> [!IMPORTANT]
+> Use the latest available release. GoPro Workflow includes an automatic version checker, but development and beta builds may contain newer fixes than older public releases.
 
 ## Support the project
 
-If this tool saves you time and you would like to buy me a coffee:
+If GoPro Workflow saves time and you would like to support development:
 
-[https://www.paypal.com/paypalme/mfaken](https://www.paypal.com/paypalme/mfaken)
+[Buy me a coffee via PayPal](https://www.paypal.com/paypalme/mfaken)
+
+## Privacy and Google authorization
+
+- [GoPro Workflow homepage](https://gopro-workflow.faken.eu/)
+- [Privacy Policy](https://gopro-workflow.faken.eu/privacy.html)
+
+Google authorization is optional and is used only for Google Street View upload and status retrieval. GoPro Workflow never receives or stores a Google password. Google sign-in takes place in the normal system browser.
+
+The distributed Windows application uses a bundled production Desktop OAuth client. A local authorization token is stored so that a valid session can be restored without opening the browser at every startup. Access can be removed with **Sign out** in GoPro Workflow or revoked in the Google Account security settings.
+
+The OAuth application is intended for a limited group of known users and is not independently verified by Google. Google may therefore show an **unverified app** warning during first authorization.
+
+## Core principles
+
+- GoPro Workflow maintains one central, validated GPS and timestamp authority.
+- Mapillary and Google Street View consume the same validated route and timeline.
+- Neither Mapillary nor Google Street View is authoritative for the other.
+- GPS recovery is fail-safe and auditable.
+- The workflow does not invent GPS positions or timestamps.
+- Unsafe outputs are blocked instead of silently accepted.
 
 ## Features
 
 ### Graphical user interface
 
-- User-friendly Tkinter-based Windows interface.
-- Separate workflows for GoPro MAX and standard GoPro cameras.
-- Configuration options for source and target directories, external utilities, video quality, GPU encoding, Nadir processing, and Mapillary credentials.
-- Standard and extended workflow logs.
-- Detailed progress reporting.
-- Per-file workflow phase tracking.
-- Clear final accept/reject summaries.
-- Per-file GPS correction and recovery tables.
-- Persistent JSON-based settings.
+- Windows GUI built with Tkinter.
+- Separate workflows for GoPro MAX and HERO/Mission 1 footage.
+- Configuration for source and target locations, video quality, GPU encoding, Nadir processing, Mapillary and Google Street View.
+- Standard and Extended Output Logs, including TXT and XML output.
+- Detailed per-file workflow monitoring.
+- Per-phase progress, queue and upload tracking.
+- GPS route preview and expandable GPS Vector Editor.
+- Clear final accepted, rejected and failed summaries.
+- Persistent JSON settings with safe migration.
+- Early startup splash during the packaged one-file executable bootstrap.
 
-### GoPro MAX 360-degree workflow
+### Current bundled toolchain
 
-#### Camera support
+The packaged release is designed around:
 
-- GoPro MAX 1 (2019 and 2025 version)
-- GoPro MAX 2
+- **FFmpeg 9.1** and matching FFprobe as the automatic default.
+- Optional manual FFmpeg 9.0.1, 8.1.2 and 8.1.1 selections.
+- Automatic FFmpeg 8.1.1 NVENC compatibility fallback for older NVIDIA drivers where applicable.
+- **ExifTool 13.64**.
+- **Mapillary Tools 0.15.1**.
+- Portable ImageMagick for the restricted PNG-only Nadir workflow.
 
-#### Video-mode support
+A manually selected FFmpeg version remains active until **Automatic (FFmpeg 9.1)** is selected again.
 
-- Standard video
-- Supported TimeWarp modes 2x and 5x
-- MAX 1 and MAX 2 workflow routing
-- Automatic distinction between standard and TimeWarp footage
+## GoPro MAX 360-degree workflow
 
-#### Supported stitched video formats
+### Camera support
 
-- GoPro CineForm
-- HEVC/H.265
-- H.264
+- GoPro MAX 1, including 2019 and 2025 models.
+- GoPro MAX 2.
 
-#### Automated preparation
+### Video-mode support
 
-- Automatic matching of stitched video and original `.360` files.
-- Automatic GPMF stream detection and extraction.
+- Standard video.
+- TimeWarp 2X.
+- TimeWarp 5X.
+- Automatic MAX-family and recording-mode detection.
+
+Other TimeWarp factors are intentionally rejected because they are not validated for the complete Mapillary and Street View workflow.
+
+### Supported stitched video formats
+
+- GoPro CineForm.
+- HEVC/H.265.
+- H.264.
+
+### Automated preparation
+
+- Matching of original `.360` files and stitched `.mp4` or `.mov` exports.
+- GPMF stream detection and extraction.
 - MAX 2 legacy GPMF stream compatibility.
-- GPMF metadata muxing into prepared video files.
+- GPMF metadata muxing into prepared media.
 - Metadata transfer from the original `.360` file.
-- Video-stream validation using FFprobe.
-- Automatic handling of 8-bit and 10-bit video.
+- Video-stream validation with FFprobe.
+- 8-bit and 10-bit handling.
 - Preservation of equirectangular projection metadata where supported.
+- Codec-aware heavy-processing capacity for CineForm and HEVC.
 
-## Early GPS preflight
+## Essential GoPro Player export settings
 
-GPS is checked directly after the GPMF stream has been extracted and before expensive video processing starts.
+For MAX footage, export a stitched equirectangular video with the highest available resolution.
 
-The early GPS preflight can detect:
+Recommended settings include:
 
-- Missing GPS data
-- Missing timestamps
-- Empty timestamps
-- Invalid timestamps
-- Duplicate timestamps
-- Locally backward timestamps
-- Non-monotonic timestamps
-- Invalid coordinates
-- Unrealistic speed discontinuities
-- Isolated GPS jumps
-- Displaced GPS clusters
-- GPS continuity gaps
-- Insufficient timed GPS anchors
+- Use **Batch Exporter** where appropriate.
+- Enable **Horizon Level**.
+- Keep **Horizon Lock enabled for all supported use cases**, including walking, cycling and driving, for both Mapillary and Google Street View.
+- Select HEVC for compact output or CineForm when maximum intermediate quality is required.
+- Use the highest available export quality.
 
-When a file cannot be recovered safely and is not required by another enabled workflow, the application skips unnecessary:
-
-- Nadir encoding
-- Video and GPMF muxing
-- Metadata transfer
-- SVS GPX generation
-- SVS header correction
-
-This prevents lengthy video processing for footage that cannot be used safely by Street View Studio.
-
-## GPS normalization and recovery
-
-The GPS correction system uses the original timestamps and coordinates contained in the GoPro GPMF telemetry.
-
-> [!IMPORTANT]
-> The application does not invent or interpolate GPS timestamps or positions.
-
-Supported GPS normalization and correction operations include:
-
-- Removal of coordinate samples without timestamps
-- Removal of isolated invalid points
-- Recovery of duplicate timestamps
-- Removal of limited locally backward timestamps
-- Correction of isolated GPS speed jumps
-- Correction of short displaced GPS sequences
-- Iterative recovery of multi-point GPS clusters
-- Removal of a safely identifiable faulty final GPS tail
-- Complete post-correction validation
-
-After every accepted iterative correction, the active GPS track is rebuilt and all speed segments are recalculated.
-
-This prevents subsequent decisions from being based on outdated point indexes or GPS segments that no longer exist.
-
-## Iterative GPS recovery
-
-Difficult GPS tracks are processed iteratively:
-
-1. Detect the worst remaining GPS discontinuity.
-2. Test multiple possible point-removal windows.
-3. Evaluate each possible replacement bridge.
-4. Apply the safest valid candidate.
-5. Rebuild the complete active GPS track.
-6. Recalculate all distances, speeds, courses, and acceleration transitions.
-7. Search for the next remaining discontinuity.
-8. Continue until the track is stable or cannot be recovered safely.
-9. Run complete post-recovery validation.
-
-### Recovery limits
-
-- Maximum of 12 points per local recovery candidate
-- Maximum of 30 removed timed points per complete track
-- Maximum of 10 recovery rounds
-- Maximum bridge duration of 10 seconds
-- No coordinate interpolation
-- No timestamp interpolation
-- No point reordering
-- Complete final-track validation
-
-If a complete and safe repair cannot be found, the GPX file is rejected and quarantined.
-
-## Movement-profile detection
-
-GPS tracks are classified using a robust speed distribution rather than one maximum-speed value.
-
-The analysis includes:
-
-- Average speed
-- Median speed
-- P75
-- P90
-- P95
-- Proportion of faster segments
-- Filtered classification samples
-- Local median speed
-
-Supported movement profiles include:
-
-- `walking`
-- `cycling`
-- `urban_fast`
-- `driving`
-
-### Urban fast
-
-The `urban_fast` profile represents the overlap between:
-
-- A fast bicycle
-- A racing bicycle
-- A speed-pedelec
-- A motor vehicle moving through urban traffic
-
-Speed percentiles alone cannot always reliably distinguish a fast bicycle from an urban car. The overlap profile therefore uses a conservative dynamic correction limit and additional route analysis.
-
-## Dynamic GPS correction limits
-
-The GPS speed limit used for correction depends on the detected movement profile.
-
-### Walking
-
-Walking uses a conservative correction limit:
-
-```text
-30 km/h
-```
-
-### Cycling
-
-Cycling uses a dynamic correction limit:
-
-```text
-max(
-    65 km/h,
-    P95 x 1.6,
-    P90 x 1.8,
-    median x 2.5
-)
-```
-
-The result is bounded between:
-
-```text
-65 and 90 km/h
-```
-
-This allows legitimate high speeds from racing bicycles, fast e-bikes, speed-pedelecs, and downhill cycling. A legitimate speed above 50 km/h is therefore not automatically treated as a GPS error.
-
-### Urban fast
-
-Ambiguous fast-bicycle or urban-driving tracks use:
-
-```text
-max(
-    80 km/h,
-    P95 x 1.6,
-    P90 x 1.8,
-    median x 2.5
-)
-```
-
-The result is bounded between:
-
-```text
-80 and 120 km/h
-```
-
-### Driving
-
-Driving uses:
-
-```text
-max(
-    150 km/h,
-    P95 x 2
-)
-```
-
-The result is bounded between:
-
-```text
-150 and 250 km/h
-```
-
-> [!NOTE]
-> A GPS point is never removed only because the calculated speed exceeds the active profile limit. The application also examines the surrounding route and the result of removing the suspected point or cluster.
-
-## Advanced GPS recovery checks
-
-For difficult GPS discontinuities, the application evaluates multiple possible recovery windows.
-
-The analysis includes:
-
-- Bridge distance
-- Bridge duration
-- Bridge speed
-- Local median speed
-- Incoming speed
-- Outgoing speed
-- Incoming course
-- Outgoing course
-- Course change across the bridge
-- Acceleration around the recovered transition
-- Distance from suspicious points to the expected route corridor
-- Number of points requiring removal
-- Remaining GPS discontinuities after rebuilding the track
-
-### Course validation
-
-Course changes are evaluated as a hard safety condition. A recovery candidate with an excessive course change is rejected, even when the bridge speed is below the active speed limit.
-
-### Acceleration validation
-
-| Movement profile | Maximum transition deviation |
-| --- | ---: |
-| Walking | 20 km/h/s |
-| Cycling | 35 km/h/s |
-| Urban fast | 50 km/h/s |
-| Driving | 80 km/h/s |
-
-These values are used together with speed, course, route-corridor, and bridge checks.
-
-## GPS preflight reporting
-
-Immediately after the early GPS preflight, the application displays structured summary tables.
-
-### GPS PREFLIGHT SUMMARY
-
-The summary shows per file:
-
-- File name
-- Result
-- Movement profile
-- Original point count
-- Final point count
-- Total removed points
-- Points without timestamps
-- Duplicate timestamps
-- Backward timestamps
-- Isolated GPS jumps
-- Multi-point removals
-- Active correction limit
-- Approval or rejection reason
+The original `.360` recording and stitched video must use the same base name.
 
 Example:
-
-```text
-File         | Result   | Profile | Original | Final | Removed | No time | Dup | Back | Jump | Multi | Limit | Reason
--------------+----------+---------+----------+-------+---------+---------+-----+------+------+-------+-------+----------------
-GS010123.mov | OK       | driving | 4481     | 4480  | 1       | 1       | 0   | 0    | 0    | 0     | 171.0 | GPS validated
-GS010124.mov | REJECTED | driving | 4481     | 0     | 0       | 1       | 0   | 0    | 0    | 0     | 154.9 | Unsafe course
-```
-
-### GPS RECOVERY ATTEMPTS
-
-When iterative recovery is attempted, a second table shows:
-
-- File name
-- Recovery round
-- Applied or rejected result
-- Number of points involved
-- Bridge speed
-- Course change
-- Acceleration
-- Explanation
-
-Example:
-
-```text
-File         | Round | Result   | Removed | Bridge | Course | Accel | Explanation
--------------+-------+----------+---------+--------+--------+-------+-------------------------------
-GS010124.mov | 1     | APPLIED  | 4       | 92.4   | 64.2   | 21.5  | Applied; track rebuilt
-GS010124.mov | 2     | REJECTED | 8       | 138.1  | 229.1  | 63.7  | Unsafe course change
-```
-
-## Final GPS Correction Summary
-
-The final GPS Correction Summary uses the same table layout as the other workflow summaries.
-
-Removed GPS points are separated by correction type:
-
-- `No time`
-- `Dup time`
-- `Back time`
-- `GPS jump`
-- `Multi`
-- `Invalid`
-
-This makes it clear why GPS points were removed.
-
-## Street View Studio preparation
-
-- Automatic GPX generation from GoPro GPMF telemetry
-- Automatic GPS normalization and recovery
-- Automatic creation of SVS-compatible MP4 and GPX pairs
-- Automatic synchronization of the MP4 QuickTime header with the first valid GPX timestamp
-- Verification of all critical QuickTime date fields
-- Separate handling for MAX 1 Standard, MAX 2 Standard, and supported TimeWarp footage
-- Removal of superseded files after successful verification
-- Fail-safe rejection when an SVS pair cannot be prepared reliably
-
-### Synchronized QuickTime fields
-
-- Create Date
-- Modify Date
-- Track Create Date
-- Track Modify Date
-- Media Create Date
-- Media Modify Date
-
-## Heavy-processing exclusion
-
-When GPS is rejected during the early preflight and Mapillary does not require the file, the application excludes that file from:
-
-- Nadir encoding
-- Video and GPMF muxing
-- Metadata transfer
-- MAX 1 export
-- MAX 2 GPX generation
-- SVS header correction
-
-The log reports:
-
-```text
-[GPS ROUTING] filename: Nadir, mux and metadata stages skipped after failed GPS preflight.
-```
-
-This can save substantial processing time for high-resolution 360-degree footage.
-
-## Optional Nadir patch
-
-The optional Nadir Patch feature hides the camera mount, tripod, or vehicle-roof area using a custom image.
-
-Features include:
-
-- ImageMagick-based patch preparation
-- Automatic patch scaling
-- Equirectangular 360-degree support
-- Patch caching
-- Parallel video encoding
-- Automatic hardware-encoder testing
-- 8-bit and 10-bit processing
-- Preservation of the equirectangular projection
-- Configurable Nadir image and scale factor
-
-> [!NOTE]
-> ImageMagick must be installed separately to use the Nadir Patch feature.
-
-## GPU encoding
-
-Supported hardware-accelerated routes depend on the installed hardware and FFmpeg build:
-
-- NVIDIA NVENC
-- Intel Quick Sync Video
-- AMD AMF
-
-The application can test the selected encoder before processing the complete batch. Software encoding can be used when a compatible hardware encoder is unavailable.
-
-GPU encoding can significantly reduce processing time for high-resolution Nadir-patched 360-degree video.
-
-## GoPro HERO and Mission 1 workflow
-
-- Dedicated processing for standard MP4 footage
-- Out-of-the-box GoPro Mission 1 series support
-- Configurable frame-sampling intervals
-- Frame extraction using FFmpeg
-- Metadata and camera-information handling
-- GPS safety checks
-- Mapillary image processing
-- Optional direct upload using Mapillary Tools
-
-## Mapillary integration
-
-- Integrated Mapillary Tools support
-- Frame sampling from supported videos
-- Processing of sampled images
-- Optional direct upload
-- Configurable Mapillary username
-- Separate controls for sampling, processing, and uploading
-- Upload-only workflow support
-- Clear upload status reporting
-- Safe cleanup of processed files
-
-## Requirements
-
-The recommended option for most users is the compiled Windows `.exe` release.
-
-The required command-line utilities are included in the packaged release unless otherwise stated. ImageMagick must be installed separately when using the optional Nadir Patch feature.
-
-### Running the Python source
-
-Running the Python script directly requires:
-
-1. Python 3.x
-2. FFmpeg
-3. FFprobe
-4. ExifTool
-5. Mapillary Tools
-6. ImageMagick, optional for Nadir Patch processing
-
-The application can use tools placed in the bundled `tools/` directory or paths selected manually in the configuration interface.
-
-## Basic configuration
-
-1. Select the source directory.
-2. Select the target directory.
-3. Configure paths to FFmpeg, FFprobe, ExifTool, the GPX format file, Mapillary Tools, and optionally ImageMagick.
-4. Enter the Mapillary username when using Mapillary.
-5. Select the GoPro MAX Workflow or GoPro HERO/Mission 1 Workflow.
-6. Enable the required processing phases.
-7. Configure video quality and GPU settings.
-8. Configure sampling and Nadir options.
-9. Click **START**.
-10. Review the GPS preflight and final summary tables.
-
-Alternatively, download the compiled `.exe` release with the required tools included.
-
-## Typical GoPro MAX source layout
-
-Matching MAX files must use the same base filename.
-
-Example using CineForm:
-
-```text
-GS010123.360
-GS010123.mov
-```
-
-Example using H.264 or HEVC:
 
 ```text
 GS010123.360
 GS010123.mp4
 ```
 
-The `.360` file supplies the original GoPro GPMF telemetry. The matching `.mov` or `.mp4` file supplies the stitched equirectangular video exported by GoPro Player.
+or:
+
+```text
+GS010123.360
+GS010123.mov
+```
+
+## Early GPS preflight
+
+GPS is checked immediately after the GPMF stream is available and before expensive video processing begins.
+
+The preflight can detect:
+
+- Missing GPS data.
+- Missing, empty or invalid timestamps.
+- Duplicate timestamps.
+- Locally backward or non-monotonic timestamps.
+- Invalid coordinates.
+- Startup points without a valid fix.
+- Unrealistic speed discontinuities.
+- Isolated GPS jumps.
+- Displaced GPS clusters.
+- GPS continuity gaps.
+- Insufficient timed anchors.
+- TimeWarp timeline inconsistencies.
+
+When a route cannot be recovered safely and is not required by another enabled output, GoPro Workflow skips unnecessary heavy processing such as Nadir encoding, muxing, metadata transfer, GPX generation and Street View timestamp correction.
+
+## GPS normalization and recovery
+
+The GPS engine uses original coordinates and timestamps from the GoPro telemetry.
+
+> [!IMPORTANT]
+> GoPro Workflow does not generate synthetic GPS positions or timestamps.
+
+Supported operations include:
+
+- Removal of coordinate samples without usable timestamps.
+- Exclusion of invalid startup points such as `fix=0`, invalid DOP or `0,0` coordinates.
+- Recovery of duplicate timestamps.
+- Removal of limited locally backward timestamps.
+- Correction of isolated speed jumps.
+- Recovery of short displaced point sequences.
+- Iterative multi-point cluster recovery.
+- Removal of a safely identifiable faulty final GPS tail.
+- Complete validation after every accepted correction.
+
+After every accepted correction, the active route is rebuilt and all distances, speeds, courses and acceleration transitions are recalculated.
+
+## Iterative GPS recovery
+
+Difficult routes are processed iteratively:
+
+1. Detect the worst remaining discontinuity.
+2. Test multiple point-removal windows.
+3. Evaluate each possible replacement bridge.
+4. Apply only a safe candidate.
+5. Rebuild the complete active route.
+6. Recalculate geometry and speed statistics.
+7. Search for the next discontinuity.
+8. Continue until stable or no safe recovery remains.
+9. Run complete post-recovery validation.
+
+### Recovery limits
+
+- Maximum of 12 points per local candidate.
+- Maximum of 30 removed timed points per complete route.
+- Maximum of 10 recovery rounds.
+- Maximum bridge duration of 10 seconds.
+- No coordinate interpolation.
+- No timestamp interpolation.
+- No point reordering.
+- Complete final-route validation.
+
+If no safe recovery is possible, the item is rejected and transferred to the run-specific `Needs_Review` structure with a machine-readable reason.
+
+## Movement-profile detection
+
+Routes are automatically classified from robust speed distributions and route characteristics rather than one maximum-speed value.
+
+Supported profiles:
+
+- `walking`
+- `cycling`
+- `urban_fast`
+- `driving`
+
+The analysis includes average speed, median, P75, P90, P95, proportions of faster segments, local medians and route geometry.
+
+### Dynamic correction limits
+
+| Profile | Dynamic correction range |
+| --- | ---: |
+| Walking | Conservative, normally around 30 km/h |
+| Cycling | 65–90 km/h |
+| Urban fast | 80–120 km/h |
+| Driving | 150–250 km/h |
+
+A point is never removed solely because a calculated speed exceeds the active limit. The surrounding geometry, course, distance, duration and replacement bridge are also evaluated.
+
+### Advanced checks
+
+- Bridge distance and duration.
+- Bridge speed.
+- Local median speed.
+- Incoming and outgoing speeds.
+- Incoming and outgoing course.
+- Course change across the bridge.
+- Acceleration around the transition.
+- Distance to the expected route corridor.
+- Remaining issues after rebuilding.
+- Compact-route and intentional-turnaround analysis.
+
+## GPS review
+
+Routes requiring user review can be opened in the GPS Vector Editor. Available map layers include streets, cycling and satellite imagery.
+
+The review workflow supports:
+
+- Route inspection at detailed zoom levels.
+- Safe removal of selected points.
+- Revalidation after edits.
+- Acceptance of legitimate speed-warning situations without deleting route points.
+- Explicit rejection.
+- Audit logging of decisions.
+
+A successful final validation replaces a provisional early-review state. Downstream processing remains blocked until the route is definitively accepted or rejected.
+
+## Mapillary integration
+
+- Mapillary Tools 0.15.1 is the leading runtime.
+- The workflow performs its own central GPX and timestamp validation before Mapillary processing.
+- Supported actions:
+  - Sample, Process and Upload.
+  - Sample and Process Only.
+  - Upload Only.
+- Dynamic FIFO queues for sampling and upload.
+- Mapillary uploads do not consume heavy sampling capacity.
+- Existing upload history and already-uploaded content are classified separately from failures.
+- Mapillary output is parsed independently of timestamped log prefixes.
+- Upload success, duplicates, processing status and cleanup status remain separate data.
+
+### Sample-range protection
+
+Before a full-route GPS override is applied, the workflow compares the Mapillary sample time range with the video duration.
+
+A clearly truncated sample range is blocked instead of being stretched over the complete GPX route. Distributed authority anchors are checked at approximately:
+
+```text
+0%, 10%, 25%, 50%, 75%, 90%, 100%
+```
+
+## Google Street View preparation
+
+- GPX generation from validated GoPro telemetry.
+- Creation of compatible MP4/GPX pairs.
+- QuickTime header synchronization with the first valid GPX timestamp.
+- Validation of critical QuickTime date fields.
+- Separate routes for MAX 1 Standard, MAX 2 Standard and supported TimeWarp footage.
+- Optional removal of audio from the prepared Street View video.
+- Fail-safe rejection when a valid pair cannot be produced.
+
+### Synchronized QuickTime fields
+
+- Create Date.
+- Modify Date.
+- Track Create Date.
+- Track Modify Date.
+- Media Create Date.
+- Media Modify Date.
+
+## Google Street View upload
+
+Google Street View upload is optional and uses the Google Street View Publish API internally.
+
+- Bundled production Desktop OAuth client.
+- Sign-in through the normal system browser.
+- PKCE, state validation and a localhost callback.
+- No Google password is received or stored by GoPro Workflow.
+- Silent refresh-token restoration at startup.
+- Interactive login only after the user selects **Sign in with Google**.
+- Color-coded authorization status in Configuration and Street View Uploads.
+- Exactly one active Street View upload at a time.
+- Safe serial FIFO upload queue.
+- Local tracking of operation and PhotoSequence identifiers.
+- Direct links to the exact sequence in Street View Studio.
+- Manual linking of existing Street View Studio uploads.
+- Status-aware archive and recovery actions.
+- Explicit sign-out and local credential removal.
+
+### Google processing status
+
+- For the first 60 days, a non-terminal Google record remains in the normal **Processing** view.
+- From day 60 onward, a non-terminal record moves to **Likely Stuck at Google (60+ days)**.
+- Explicit Google failures are shown immediately in **Errors / Attention**.
+- Temporary status-check failures remain retryable and are not immediately treated as upload failures.
+- Completed and definitive failed records are not refreshed unnecessarily.
+
+## Optional Nadir processing
+
+The optional Nadir feature hides the camera mount, tripod or vehicle-roof area using a bundled or custom PNG.
+
+Features include:
+
+- Restricted PNG-only ImageMagick processing.
+- Automatic patch scaling.
+- Equirectangular 360-degree support.
+- Patch caching.
+- Adaptive parallel encoding.
+- Hardware-encoder testing.
+- 8-bit and 10-bit video handling.
+- Preservation of equirectangular projection metadata.
+- Codec-aware capacity, including one heavy CineForm task at a time.
+
+## GPU encoding
+
+Supported acceleration routes depend on the installed hardware and bundled FFmpeg build:
+
+- NVIDIA NVENC.
+- Intel Quick Sync Video.
+- AMD AMF.
+- Software `libx265` fallback where appropriate.
+
+Automatic mode uses FFmpeg 9.1. FFmpeg 8.1.1 remains available as an automatic NVENC compatibility fallback for older NVIDIA drivers.
+
+## GoPro HERO and Mission 1 workflow
+
+- Dedicated processing for standard MP4/MOV footage.
+- GoPro Mission 1 support through the HERO workflow.
+- Internal GPMF handling.
+- Configurable frame-sampling distance.
+- FFmpeg frame extraction.
+- GPS validation and review.
+- Mapillary processing and optional upload.
+- Shared monitoring, result-store, cleanup and reporting architecture with the MAX workflow where technically applicable.
+
+Run resume is intentionally available only for the MAX workflow. Normal Pause/Continue during an active run remains separate.
+
+## Workflow monitoring and final reporting
+
+- Stable per-item identities across all phases.
+- Central thread-safe run result store.
+- Separate GPS, Mapillary, Street View, upload and cleanup results.
+- Route distance stored once per item and reused without a final GPX rescan.
+- Dynamic waiting queues that exclude active tasks.
+- Responsive GUI updates with coalesced progress output.
+- `Needs_Review` output for rejected, skipped and failed items.
+- Verified cleanup with source and destination checks.
+- Frozen results before final reporting.
+- No expensive final ffprobe, GPX or JPEG rescan during normal reporting.
+- Synchronized TXT and XML log completion.
+
+## Requirements
+
+The recommended option is the compiled Windows `.exe` release. Required command-line utilities and portable dependencies are included in the packaged release.
+
+### Running from Python source
+
+A source installation requires:
+
+1. Python 3.x.
+2. FFmpeg and FFprobe.
+3. ExifTool.
+4. Mapillary Tools.
+5. ImageMagick or the packaged portable ImageMagick directory.
+6. Required Python dependencies such as Pillow, tkintermapview and pywebview where used.
+7. A valid `resources/google_oauth_desktop.json` when building a distribution with Google Street View upload.
+
+The application expects bundled runtimes under `tools/`. Runtime locations are not intended as normal end-user configuration fields.
+
+## Basic configuration
+
+1. Select the source and target directories.
+2. Select **Automatic (FFmpeg 9.1)** unless a specific compatibility version is required.
+3. Select or authenticate the local Mapillary profile if Mapillary upload is required.
+4. Configure Mapillary sample distance and upload workers.
+5. Under **Google Street View upload**, sign in with Google if Street View upload is required.
+6. Select the MAX or HERO/Mission 1 workflow.
+7. Choose the required processing and upload actions.
+8. Configure quality, GPU and optional Nadir settings.
+9. Start the workflow.
+10. Review GPS decisions, monitor status and final summaries.
 
 ## Important notes
 
 > [!WARNING]
 > Standard VLC cannot replace GoPro Player for converting proprietary GoPro MAX `.360` footage into a correctly stitched equirectangular video.
 
-Export MAX footage using GoPro Player or another compatible GoPro MAX stitching solution before using the footage with this workflow.
-
-Additional notes:
-
-- Keep the `.360` file and stitched video under the same base filename.
+- Keep each `.360` file and stitched video under the same base name.
 - GPS recovery is intentionally fail-safe.
-- The application does not generate synthetic GPS positions.
-- The application does not generate synthetic GPS timestamps.
-- An unrecoverable GPX file is quarantined.
-- A successful GPX correction does not replace the final MP4/GPX synchronization checks.
-- Always review the GPS Preflight Summary, GPS Recovery Attempts, GPS Correction Summary, and Final Accept/Reject Summary.
-
-## Development history
-
-### 28 July 2026: Version 5.7.0
-
-- Added iterative GPS-track recovery.
-- Added complete track rebuilding after each accepted correction.
-- Added multi-point GPS cluster recovery.
-- Added course validation.
-- Added acceleration validation.
-- Added bridge-speed and route-corridor checks.
-- Added dynamic cycling limits for fast bicycles and speed-pedelecs.
-- Added the `urban_fast` overlap profile.
-- Added GPS Preflight Summary tables.
-- Added GPS Recovery Attempts tables.
-- Expanded the final GPS Correction Summary.
-- Added separate GPS removal-type columns.
-- Added heavy-processing exclusion after failed GPS preflight.
-- Improved fail-safe GPX rejection.
-- Improved recovery diagnostics and workflow routing.
-
-### 1 June 2026: Mission 1 support
-
-- Added GoPro Mission 1 series support.
-- Mission 1 uses the standard HERO workflow.
-- Out-of-the-box processing support is included.
-
-### 20 April 2026: Version 5.2.0
-
-- Added supported TimeWarp processing for GoPro MAX 1 and MAX 2.
-- TimeWarp support was initially intended primarily for Street View Studio output.
-
-### 15 December 2025: Version 4.2.2
-
-- Added GPU-accelerated encoding.
-- Significantly reduced processing time for Nadir-patched videos.
+- No synthetic GPS positions or timestamps are generated.
+- A successful GPS correction does not replace final MP4/GPX synchronization checks.
+- Google Street View and Mapillary uploads are separate actions with separate statuses.
+- Always review the GPS preflight, recovery, correction and final result summaries.
 
 ## Logging and troubleshooting
 
-The workflow creates standard and extended log files.
+The workflow creates standard and Extended Output Logs. Extended logs are available as TXT and XML.
 
 When reporting an issue, include:
 
-- Application version
-- Camera family
-- Source-video codec
-- Enabled workflow phases
-- Relevant final summary tables
-- GPX rejection code, if applicable
-- Approximately 30 to 50 log lines around the first warning or error
+- Application version and build ID.
+- Camera family and recording mode.
+- Source codec.
+- Enabled workflow phases.
+- Relevant final summary tables.
+- GPX rejection code, when applicable.
+- Approximately 30 to 50 lines around the first warning or error.
 
-Useful GPS-related log prefixes include:
+Useful prefixes include:
 
 ```text
 [GPS PREFLIGHT]
@@ -571,7 +436,50 @@ Useful GPS-related log prefixes include:
 [GPS FIX]
 [GPS REVIEW]
 [GPS SUMMARY]
+[MAPILLARY SAMPLE COVERAGE]
+[MAPILLARY GPS AUTHORITY]
+[SVS API]
+[FINAL CLEANUP COMPLETE]
+[RUN RESULTS FINALIZED]
+[FINAL REPORT GENERATION START]
+[FINAL REPORT GENERATION COMPLETE]
 ```
+
+## Development history
+
+### Version 6.7 development line
+
+- Adopted FFmpeg 9.1 as the automatic default.
+- Adopted ExifTool 13.64 and Mapillary Tools 0.15.1.
+- Added a bundled production Google Desktop OAuth client.
+- Added optional Google Street View upload and status management.
+- Added serial Street View upload dispatching.
+- Added sample-range protection before Mapillary GPS override.
+- Expanded distributed GPS authority verification.
+- Added central result-store based route distance and final reporting.
+- Improved startup splash behavior for packaged one-file builds.
+- Changed the Google likely-stuck threshold to 60 days.
+
+### 28 July 2026: Version 5.7.0
+
+- Added iterative GPS-track recovery.
+- Added complete route rebuilding after each accepted correction.
+- Added multi-point cluster recovery.
+- Added course, acceleration, bridge-speed and route-corridor checks.
+- Added dynamic cycling limits and the `urban_fast` profile.
+- Added structured GPS preflight and recovery summaries.
+
+### 1 June 2026: Mission 1 support
+
+- Added GoPro Mission 1 support through the standard HERO workflow.
+
+### 20 April 2026: Version 5.2.0
+
+- Added supported TimeWarp processing for GoPro MAX 1 and MAX 2.
+
+### 15 December 2025: Version 4.2.2
+
+- Added GPU-accelerated encoding for Nadir-processed video.
 
 ## License and third-party components
 
@@ -579,8 +487,12 @@ This project uses external utilities and libraries that remain subject to their 
 
 Review the included license and notice files for:
 
-- FFmpeg and FFprobe
-- ExifTool
-- Mapillary Tools
-- ImageMagick
-- Python dependencies
+- FFmpeg and FFprobe.
+- ExifTool.
+- Mapillary Tools.
+- ImageMagick.
+- Python dependencies.
+
+## Disclaimer
+
+GoPro Workflow is an independent project and is not endorsed by, sponsored by or affiliated with GoPro, Meta, Mapillary or Google. Product and service names belong to their respective owners.
